@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+</head>
+<body>
+<script
+  src="https://code.jquery.com/jquery-3.3.1.min.js"
+  integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+  crossorigin="anonymous"></script>
+<script>
+
+  const func = (from, to, value, device) =>{
+
+  };
+  $.getJSON("input.json", function (data) {
+    let devices = data.devices;
+    let rates = data.rates;
+    let maxPower = data.maxPower;
+
+    let schedule = [];
+    let hours = [];
+    for (var h = 24; h--;) {
+      hours.push(new Array());
+    }
+    console.log(hours);
+    rates.sort(function (a, b) {
+      if (a.value > b.value) {
+        return 1;
+      }
+      if (a.value < b.value) {
+        return -1;
+      }
+      return 0;
+    });
+
+
+
+    for (var i in devices) {
+
+      console.log(rates);
+
+      for (var j in rates) {
+
+
+      }
+      //
+      //   let val = j.value;
+      //   let start = j.to;
+      //   let end = j.from;
+
+
+      for (var h = 24; h--;) {
+        if (devices[i].duration === 24) {
+          hours[h].push(rates[j].value);
+          hours[h].push(devices[i].name);
+          hours[h].push(devices[i].power);
+          continue;
+        }
+        if (devices[i].mode === "day") {
+
+          // if (h < 7) continue hours;
+          // if (h >= 21) continue hours;
+          // console.log("d= " + h);
+        }
+        else if (devices[i].mode === "night") {
+          // if (h >= 7) continue hours;
+          // if (h < 21) continue hours;
+          // console.log("n= " + h);
+        }
+        else {
+
+
+          // schedule[j].push
+        }
+      }
+      // }
+    }
+
+    console.log(hours);
+    // console.log(devices);
+    // console.log(rates);
+    // console.log(maxPower);
+    // console.log(schedule);
+  });
+
+</script>
+</body>
+</html>
