@@ -40,13 +40,13 @@
     };
 
     // Заполняем значение тарифа для каждого часа
-    for (let j in rates) {
+    for (let rate of rates) {
       let range;
-      rates[j].to > rates[j].from ?
-        range = rates[j].to - rates[j].from : range = rates[j].to + (24 - rates[j].from);
+      rate.to > rate.from ?
+        range = rate.to -rate.from : range = rate.to + (24 - rate.from);
       for (; range--;) {
-        let index = (rates[j].from + range) % 24;
-        outputDebug[index].value = rates[j].value;
+        let index = (rate.from + range) % 24;
+        outputDebug[index].value = rate.value;
       }
     }
     console.log("Rates:");
@@ -97,7 +97,7 @@
       }
     }
     console.log("outputDebug: ");
-
+    console.log(outputDebug);
     // Собираем output
     // Итоговый расход
     let total = 0;
