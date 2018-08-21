@@ -1,90 +1,129 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <title>Title</title>
+  <title>Задание на JS</title>
 </head>
 <body>
+<!-- JQuery для работы с json -->
 <script
   src="https://code.jquery.com/jquery-3.3.1.min.js"
   integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
   crossorigin="anonymous"></script>
 <script>
 
-  const func = (from, to, value, device) =>{
+  const setOutput = (data) => {
 
-  };
-  $.getJSON("input.json", function (data) {
-    let devices = data.devices;
-    let rates = data.rates;
-    let maxPower = data.maxPower;
+    const devices = data.devices;
+    const rates = data.rates;
+    const maxPower = data.maxPower;
 
-    let schedule = [];
-    let hours = [];
-    for (var h = 24; h--;) {
-      hours.push(new Array());
+
+    const output = {
+      "schedule": [],
+      "consumedEnergy": {
+        "value": "",
+        "devices": {}
+      }
+    };
+    const outputDevices = {};
+
+    const outputDebug = [];
+    for (let h = 0; h < 24; h++) {
+      outputDebug.push({
+        "id": [],
+        "value": 0,
+        "name": [],
+        "power": [],
+        "currentPower": 0
+      });
+    };
+
+    // Заполняем значение тарифа для каждого часа
+    for (let j in rates) {
+      let range;
+      rates[j].to > rates[j].from ?
+        range = rates[j].to - rates[j].from : range = rates[j].to + (24 - rates[j].from);
+      for (; range--;) {
+        let index = (rates[j].from + range) % 24;
+        outputDebug[index].value = rates[j].value;
+      }
     }
-    console.log(hours);
-    rates.sort(function (a, b) {
-      if (a.value > b.value) {
-        return 1;
-      }
-      if (a.value < b.value) {
-        return -1;
-      }
-      return 0;
+    console.log("Rates:");
+    console.log(outputDebug);
+
+    // Сортировка по убыванию цикла
+    // Сначало планируем работу приборов, работающих круглосуточно
+    devices.sort(function (a, b) {
+      return b.duration - a.duration
     });
+    console.log("Devices:");
+    console.log(devices);
 
+    for (let device of devices) {
+      outputDevices[device.id] = 0;
 
+      let filterDebug = outputDebug.slice();
+      let duration = device.duration;
 
-    for (var i in devices) {
-
-      console.log(rates);
-
-      for (var j in rates) {
-
-
+      for (let j in filterDebug) {
+        if (device.mode === "day") {
+          7 > j && delete filterDebug[j];
+          j >= 21 && delete filterDebug[j];
+        }
+        else if (device.mode === "night") {
+          21 > j && j >= 7 && delete filterDebug[j];
+        }
+        // Проверяем не привысет ли максимальную мощность, если превышает, то исключаем
+        filterDebug[j] ?
+          filterDebug[j].currentPower + device.power > maxPower && delete filterDebug[j] : "";
       }
-      //
-      //   let val = j.value;
-      //   let start = j.to;
-      //   let end = j.from;
+      // console.log("filterDebug: ");
+      // console.log(filterDebug);
 
+      for (; duration--;) {
+        // Получаем индекс минимального значения в массиве
+        let index = filterDebug.indexOf(filterDebug.reduce(function (a, b) {
+          return a.value < b.value ? a : b;
+        }));
+        outputDebug[index].id.push(device.id);
+        outputDebug[index].name.push(device.name);
+        outputDebug[index].power.push(device.power);
 
-      for (var h = 24; h--;) {
-        if (devices[i].duration === 24) {
-          hours[h].push(rates[j].value);
-          hours[h].push(devices[i].name);
-          hours[h].push(devices[i].power);
-          continue;
-        }
-        if (devices[i].mode === "day") {
-
-          // if (h < 7) continue hours;
-          // if (h >= 21) continue hours;
-          // console.log("d= " + h);
-        }
-        else if (devices[i].mode === "night") {
-          // if (h >= 7) continue hours;
-          // if (h < 21) continue hours;
-          // console.log("n= " + h);
-        }
-        else {
-
-
-          // schedule[j].push
-        }
+        outputDevices[device.id] += outputDebug[index].value * device.power;
+        // Мощность на текущий час
+        outputDebug[index].currentPower = outputDebug[index].power.reduce((a, b) => a + b, 0);
+        delete filterDebug[index];
       }
-      // }
     }
+    console.log("outputDebug: ");
 
-    console.log(hours);
-    // console.log(devices);
-    // console.log(rates);
-    // console.log(maxPower);
-    // console.log(schedule);
-  });
+    // Собираем output
+    // Итоговый расход
+    let total = 0;
+    for (let i of outputDebug) {
+      total += i.value * i.currentPower;
+    }
+    output.consumedEnergy.value = +((total / 1000).toFixed(4));
+    // Итоговый расход по устрйоствам
+    for (let i in outputDevices) {
+      output.consumedEnergy.devices[i] = outputDevices[i] / 1000;
+    }
+    // Работа устройств по часам
+    output.schedule = outputDebug.map((device) => device.id);
+    console.log("--------------------------------------");
+    console.log("Output: ");
+    console.log(output);
+  };
 
+  // Получаем исходны данные
+  $.getJSON("input.json", function (data) {
+    setOutput(data);
+  })
+    .fail(function (textStatus, error) {
+      let err = textStatus + ", " + error;
+      console.log("Request Failed: " + err);
+    });
 </script>
 </body>
 </html>
